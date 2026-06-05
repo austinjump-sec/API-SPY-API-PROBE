@@ -21,7 +21,7 @@ print(r"""
 if len(sys.argv) < 2:
     print(" [!] Error: No URL provided.")
     sys.exit(1)
-
+ 
 url = sys.argv[1]
 methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
 
