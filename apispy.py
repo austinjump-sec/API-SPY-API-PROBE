@@ -22,7 +22,7 @@ print(r"""
 =====================================================================
 """);
 if len(sys.argv) < 3:
-    print(" [!] Usage: python3 script.py <baseUrl> <wordlist> [-t<thread-count> --split (to open subprocess in same terminal)] ")
+    print(" [!] Usage: python3 script.py <baseUrl> <wordlist> [-t<thread-count> --split (to open subprocess in same terminal when subscanning/probing)] ")
     print("Brackets are optional flags, not syntax")
     sys.exit(1)
 
@@ -33,6 +33,7 @@ flag1 = sys.argv[4] if len(sys.argv) > 4 else ""
 arguments = sys.argv[3:]
 thread_flag = next((arg for arg in arguments if arg.startswith("-t")), "")
 terminal_lock = threading.Lock()
+prompt_lock = threading.Lock()
 if thread_flag:
     try:
         thread_count = int(thread_flag[2:])
@@ -73,13 +74,18 @@ def check_status(url, wordlist):
         if response.status_code == 200:
             with terminal_lock:
                 print(f"\n [+] Url found: {url}")
+            with prompt_lock:
                 ask_subscan(url, wordlist)
         elif response.status_code == 403: 
             with terminal_lock:
                 print(f"\n [-] Url found but not permitted (403 ERR): {url}")
+            with prompt_lock:
+                ask_subscan(url, wordlist)
         elif response.status_code == 401: 
             with terminal_lock:
                 print(f"\n [-] Url found but not permitted (401 ERR): {url}")
+            with prompt_lock:
+                ask_subscan(url, wordlist)
     except requests.exceptions.RequestException:
             pass
 
@@ -91,19 +97,53 @@ def ask_subscan(url, wordlist, timeout=5):
     if ready:
         choice = sys.stdin.readline().strip().lower()
         if choice in ['y', 'yes']:
+            print(" [-] Beginning Subscan, please ensure script is named apispy.py")
             subScanCmd = f"python3 apispy.py {url} {wordlist}"
             
             if flag == "--split" or flag1 == "--split":
                 subScanCmd = f"python3 apispy.py {url} {wordlist} --split"
                 try:
                     subprocess.Popen(["tmux", "split-window", "-h", subScanCmd])
+                    ask_probe(url)
                 except Exception as e:
                     subScanCmd = f"python3 apispy.py {url} {wordlist}"
                     print(f"\n [!] An error occurred, opening new terminal despite flag: {e}")
                     os.system(f"gnome-terminal -- bash -c '{subScanCmd}; exec bash'")
+                    ask_probe(url)
             else:
                 os.system(f"gnome-terminal -- bash -c '{subScanCmd}; exec bash'")
+                ask_probe(url)
     else:
         sys.stdout.write("\r\033[K    [-] Timeout: Skipped prompt for " + url + "\n")
         sys.stdout.flush()
+        ask_probe(url)
+
+def ask_probe(url, timeout=5):
+    sys.stdout.write("\r\033[K") 
+    sys.stdout.write(f"    '-> Probe methods on {url}? (y/n) [Auto-skip in {timeout}s]: ")
+    sys.stdout.flush()
+    
+    ready, _, _ = select.select([sys.stdin], [], [], timeout)
+    if ready:
+        choice = sys.stdin.readline().strip().lower()
+        if choice in ['y', 'yes']:
+            print(" [-] Beginning probe script, make sure it is saved in same directory with name apiprobe.py")
+            probeCmd = f"python3 apiprobe.py {url}"
+            
+
+            if flag == "--split" or flag1 == "--split" or "--split" in arguments:
+                try:
+                    subprocess.Popen(["tmux", "split-window", "-h", probeCmd])
+                except Exception as e:
+                    print(f"\n [!] An error occurred, opening new terminal despite flag: {e}")
+                    os.system(f"gnome-terminal -- bash -c '{probeCmd}'")
+            else:
+                os.system(f"gnome-terminal -- bash -c '{probeCmd}'")
+    else:
+
+        with terminal_lock:
+            sys.stdout.write("\r\033[K    [-] Timeout: Skipped probing for " + url + "\n")
+            sys.stdout.flush()
+
+
 check_common_apis(baseUrl, wordlist)
