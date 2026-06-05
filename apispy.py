@@ -81,14 +81,17 @@ def check_status(url, wordlist):
 
     try:
         headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0"}
-        response = requests.get(url, headers=headers, timeout=5, allow_redirects=False, verify=False) 
+        response = requests.get(url, headers=headers, timeout=5, allow_redirects=False)
+    except requests.exceptions.SSLError:
+        response = requests.get(url, headers=headers, timeout=5, allow_redirects=False, verify=False)
         if response.status_code == 200:
             with terminal_lock:
                 print(f"\n [+] Url found: {url}")
             with prompt_lock:
                 ask_subscan(url, wordlist)
         if response.status_code in [301, 302, 307, 308]:
-            print(
+            with terminal_lock:
+                print(
             f"[>] Redirect ({response.status_code}) "
             f"{url} -> {response.headers.get('Location')}"
             )
@@ -98,14 +101,12 @@ def check_status(url, wordlist):
             with prompt_lock:
                 ask_subscan(url, wordlist)
     except requests.exceptions.Timeout:
-        with terminal_lock:
-            print(f" [!] Timeout connecting to: {url}")
+        pass
     except requests.exceptions.ConnectionError:
-        with terminal_lock:
-            print(f" [!] Connection Error: Unable to reach {url}.")
+        pass
     except requests.exceptions.RequestException as e:
-        with terminal_lock:
-            print(f" [!] Request error on {url}: {e}")
+        pass
+
 def ask_subscan(url, wordlist, timeout=5):
     sys.stdout.write("\r\033[K") 
     sys.stdout.write(f"    '-> Subscan {url}? (y/n) [Auto-skip in {timeout}s]: ")
