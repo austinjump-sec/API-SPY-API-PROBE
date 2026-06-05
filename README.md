@@ -67,8 +67,9 @@ python3 apispy.py <baseUrl> <wordlist> [OPTIONS]
 
 | Argument | Description |
 |----------|-------------|
-| `-t<number>` | Thread count (max 150, default: 1) |
+| `--t<number>` | Thread count (max 150, default: 1) |
 | `--split` | Use tmux split-window instead of new terminal windows |
+| `--debug` | Shows otherwise hidden error messages so prompts dont collide with errors (unless specified) |
 
 ### Examples
 
