@@ -26,7 +26,8 @@ print(r"""
 if len(sys.argv) < 3:
     print(" [!] Usage: python3 script.py <baseUrl> <wordlist> [flags] ")
     print("Flags: --debug: Gives error messages that are hidden by default to keep prompting and scanning output from interrupting eachother.")
-    print("--t<1-150>: Specifies thread count.")
+    print("--loud: Gives response of every directory and highlighting any results not 404.")
+    print("--t<1-150>: Specifies thread count. Note: I added a pretty high thread count, if subscanning and probing are important please use a low thread count.")
     print("--split: Opens subscans in a multiplex terminal (tmux) split-pane.")
     sys.exit(1)
 
@@ -35,6 +36,7 @@ wordlist = sys.argv[2]
 flag = sys.argv[3] if len(sys.argv) > 3 else ""
 flag1 = sys.argv[4] if len(sys.argv) > 4 else ""
 flag2 = sys.argv[5] if len(sys.argv) > 5 else ""
+flag3 = sys.argv[6] if len(sys.argv) > 6 else ""
 arguments = sys.argv[3:]
 thread_flag = next((arg for arg in arguments if arg.startswith("--t")), "")
 terminal_lock = threading.Lock()
@@ -64,10 +66,11 @@ def check_wordlist(baseUrl, wordlist):
         sys.exit(1)
     endpoints = []
     try:
+        print(" [+] Starting User Wordlist")
         with open(wordlist, 'r', encoding='UTF-8', errors='ignore') as f:
             for line in f:
                 endpoint = line.strip()
-                if endpoint and not endpoint.startswith('#'):
+                if endpoint:
                     endpoints.append(endpoint.lstrip('/'))
     except Exception as e:
         print(f" [!] Failed to read wordlist! {e}")
@@ -78,9 +81,10 @@ def check_wordlist(baseUrl, wordlist):
     with ThreadPoolExecutor(max_workers=thread_count) as executor:
         executor.map(lambda url: check_status(url, wordlist), urls)
 def check_status(url, wordlist):
-
-    parsed = urlparse(url)
+    encode_hash = url
+    parsed = urlparse(encode_hash)
     clean_path = parsed.path.replace('//', '/')
+    
     url = urlunparse((parsed.scheme, parsed.netloc, clean_path, parsed.params, parsed.query, parsed.fragment))
 
     try:
@@ -90,7 +94,8 @@ def check_status(url, wordlist):
         response = requests.get(url, headers=headers, timeout=5, allow_redirects=False, verify=False)
     except requests.exceptions.RequestException as e:
         if "--debug" in arguments:
-            print(f" [!] Connection error: {e}")
+            with terminal_lock:
+                print(f"[!] {e.__class__.__name__} on {url}: {e}")
         return
     if response.status_code == 200:
         with terminal_lock:
@@ -108,7 +113,12 @@ def check_status(url, wordlist):
             print(f"\n [-] Url found but restricted ({response.status_code}): {url}")
         with prompt_lock:
             ask_subscan(url, wordlist)
-
+    elif "--loud" in arguments:
+        with terminal_lock:
+            if response.status_code == 404:
+                print(f"{url} attempted. HTTP Code: {response.status_code}")
+            else:
+                print(f"\033[31m {url} attemped. HTTP Code: {response.status_code} \033[0m")
 def ask_subscan(url, wordlist, timeout=5):
     sys.stdout.write("\r\033[K") 
     sys.stdout.write(f"    '-> Subscan {url}? (y/n) [Auto-skip in {timeout}s]: ")
@@ -118,18 +128,19 @@ def ask_subscan(url, wordlist, timeout=5):
         choice = sys.stdin.readline().strip().lower()
         if choice in ['y', 'yes']:
             print(" [-] Beginning Subscan, please ensure script is named apispy.py")
-            subScanCmd = f"python3 apispy.py {url} {wordlist} {flag} {flag2} {flag3}".strip()
+            subScanCmd = f"python3 apispy.py {url} {wordlist} {flag} {flag1} {flag2} {flag3}".strip()
             
             if "--split" in arguments:
-                subScanCmd = f"python3 apispy.py {url} {wordlist} --split"
                 try:
                     subprocess.Popen(["tmux", "split-window", "-h", subScanCmd])
                 except Exception as e:
                     subScanCmd = f"python3 apispy.py {url} {wordlist}"
                     print(f"\n [!] An error occurred, opening new terminal despite flag: {e}")
-                    os.system(f"gnome-terminal -- bash -c '{subScanCmd}; exec bash'")
+                    os.system(f"x-terminal-emulator -e bash -c '{subScanCmd}; exec bash'")
+
             else:
-                os.system(f"gnome-terminal -- bash -c '{subScanCmd}; exec bash'")
+                os.system(f"x-terminal-emulator -e bash -c '{subScanCmd}; exec bash'")
+
     else:
         sys.stdout.write("\r\033[K    [-] Timeout: Skipped prompt for " + url + "\n")
         sys.stdout.flush()
@@ -154,9 +165,11 @@ def ask_probe(url, timeout=5):
                     subprocess.Popen(["tmux", "split-window", "-h", probeCmd])
                 except Exception as e:
                     print(f"\n [!] An error occurred, opening new terminal despite flag: {e}")
-                    os.system(f"gnome-terminal -- bash -c '{probeCmd}'")
+                    os.system(f"x-terminal-emulator -e bash -c '{probeCmd}; exec bash'")
+
             else:
-                os.system(f"gnome-terminal -- bash -c '{probeCmd}'")
+                os.system(f"x-terminal-emulator -e bash -c '{probeCmd}; exec bash'")
+
     else:
 
         with terminal_lock:
