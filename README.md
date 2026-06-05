@@ -1,4 +1,4 @@
-# API-SPY 🕵️
+# API-SPY 🕵️👻
 
 A powerful directory brute-force tool designed for API reconnaissance and penetration testing. Automatically discovers hidden API endpoints, performs recursive subscanning, and probes HTTP methods for deeper API enumeration.
 
@@ -277,28 +277,9 @@ done
 - Extracts hints from HTTP headers
 - Provides endpoint capability assessment
 
-## Limitations
 
-- ⚠️ Limited to HTTP GET requests for initial endpoint discovery
-- ⚠️ No authentication mechanism (for protected APIs, consider adding Authorization headers)
-- ⚠️ No custom headers or request body support in initial scan
-- ⚠️ Linux/GNOME-terminal specific (tmux and gnome-terminal required)
-- ⚠️ Basic error handling (no retry logic for failed requests)
-- ⚠️ No output logging to file (results are terminal-only)
 
-## Future Enhancements
 
-Potential improvements:
-- [ ] Output results to JSON/CSV file
-- [ ] Custom authentication headers support
-- [ ] Request body templates for POST/PUT methods
-- [ ] Windows and macOS terminal support
-- [ ] Proxy support (HTTP/SOCKS)
-- [ ] SSL/TLS certificate verification options
-- [ ] Rate limiting and backoff strategies
-- [ ] Results database (SQLite)
-- [ ] Concurrent subprocess management
-- [ ] Advanced filtering and reporting
 
 ## Contributing
 
