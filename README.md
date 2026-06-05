@@ -13,6 +13,8 @@ A powerful directory brute-force tool designed for API reconnaissance and penetr
   |  | |  ||  |      (_|  |            \       /|  |      `-./  /.__) 
   `--' `--'`--'      `--'             `-----' `--'        `--'      
 ```
+<img width="1920" height="1047" alt="screenie" src="https://github.com/user-attachments/assets/3ecfba10-8dae-4174-b3db-3d8be198eedd" alt="Debugging on HTB machine WingData" />
+<img width="1920" height="1080" alt="Screenshot_2026-05-19_13-36-40" src="https://github.com/user-attachments/assets/2df7c4f0-13aa-46f7-a1e8-420af5efc6fd" alt="Debugging on HTB machine WingData" />
 
 ## Features
 
@@ -32,7 +34,7 @@ A powerful directory brute-force tool designed for API reconnaissance and penetr
 - Python 3.6+
 - `requests` library
 - `tmux` (optional, for `--split` flag)
-- `gnome-terminal` (for Linux desktop environments)
+- `xfce-terminal` (for Linux desktop environments)
 
 ### Setup
 
@@ -69,8 +71,8 @@ python3 apispy.py <baseUrl> <wordlist> [OPTIONS]
 |----------|-------------|
 | `--t<number>` | Thread count (max 150, default: 1) |
 | `--split` | Use tmux split-window instead of new terminal windows |
-| `--debug` | Shows otherwise hidden error messages so prompts dont collide with errors (unless specified) |
-
+| `--debug` | Shows otherwise hidden error messages |
+|  --loud   |  Shows all messages, positive and errors, highlighting any that dont return 404|
 ### Examples
 
 #### Basic scan with default settings (single-threaded)
@@ -211,7 +213,7 @@ When subscanning, ensure:
 If `--split` fails:
 - Install tmux: `sudo apt install tmux`
 - Ensure you're running in a tmux session: `tmux new-session -s scan`
-- Falls back to gnome-terminal automatically
+- Falls back to xfce-terminal automatically
 
 ### "Connection Failed" for all endpoints
 - Verify the base URL is correct and accessible
