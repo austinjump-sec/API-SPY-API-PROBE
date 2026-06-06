@@ -15,6 +15,7 @@ A powerful directory brute-force tool designed for API reconnaissance and penetr
 - ⚡ Multi-threaded scanning for improved performance
 - 📊 Smart status code handling (200, 401, 403)
 - 🔗 Interactive prompts for selective subscanning and probing
+- 🕷️ JavaScript scraping for common /api/ endpoints
 - 🪟 Terminal multiplexing support (tmux) for parallel operations
 - ⏱️ Auto-skip prompts with configurable timeout
 
@@ -62,7 +63,8 @@ python3 apispy.py <baseUrl> <wordlist> [OPTIONS]
 | `--t<number>` | Thread count (max 150, default: 1) |
 | `--split` | Use tmux split-window instead of new terminal windows |
 | `--debug` | Shows otherwise hidden error messages |
-|  --loud   |  Shows all messages, positive and errors, highlighting any that dont return 404|
+| ` --loud `  |  Shows all messages, positive and errors, highlighting any that dont return 404|
+|` --js`  | Scans for JavaScript files and scrapes any found ones for common hardcoded API endpoints|
 ### Examples
 
 #### Basic scan with default settings (single-threaded)
